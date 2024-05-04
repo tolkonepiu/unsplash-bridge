@@ -1,6 +1,7 @@
 name: Deploy
 
 on:
+  workflow_dispatch:
   release:
     types:
       - published
@@ -10,10 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Cloudflare Worker
     concurrency: deploy-production
-
-    environment:
-      name: production
-      url: https://unsplash.camellia.app
 
     steps:
       - name: Checkout repository
