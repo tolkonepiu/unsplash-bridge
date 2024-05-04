@@ -2,9 +2,9 @@ name: Deploy
 
 on:
   workflow_dispatch:
-  release:
-    types:
-      - published
+  push:
+    branches:
+      - main
 
 jobs:
   cloudflare_worker:
@@ -53,7 +53,7 @@ jobs:
             SENTRY_DSN
             UNSPLASH_ACCESS_KEY
         env:
-          APP_VERSION: ${{ github.event.repository.name }}@${{ github.event.release.tag_name }}
+          APP_VERSION: ${{ github.event.repository.name }}@${GITHUB_SHA::7}
           ENVIRONMENT_NAME: production
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}

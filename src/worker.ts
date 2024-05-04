@@ -3,7 +3,7 @@ import { Toucan } from 'toucan-js';
 import type { UnsplashPhoto } from './unsplash';
 
 import { Logger } from './logger';
-import { UnsplashApiError, getRandomPhotoFromCollection, notifyUnsplashAboutDownload } from './unsplash';
+import { UnsplashApiError, getRandomPhotoByQuery, notifyUnsplashAboutDownload } from './unsplash';
 
 export type Env = {
   APP_VERSION: string;
@@ -39,8 +39,8 @@ export default {
         case '/':
           return healthAction(env.APP_VERSION);
 
-        case '/random-collection-entry': {
-          return await randomCollectionEntryAction(context, env.UNSPLASH_ACCESS_KEY, request);
+        case '/random-photo': {
+          return await randomPhotoAction(context, env.UNSPLASH_ACCESS_KEY, request);
         }
 
         default:
@@ -94,24 +94,20 @@ const healthAction = (appVersion: string): Response => {
   );
 };
 
-const randomCollectionEntryAction = async (
+const randomPhotoAction = async (
   context: ExecutionContext,
   unsplashAccessKey: string,
   request: Request,
 ): Promise<Response> => {
   const requestUrl = new URL(request.url);
 
-  const id = requestUrl.searchParams.get('id');
+  const query = requestUrl.searchParams.get('query');
 
-  if (id === null) {
-    return missingRequiredParameterResponse('id');
+  if (query === null) {
+    return missingRequiredParameterResponse('query');
   }
 
-  if (!/^[0-9]+$/.test(id)) {
-    return parameterHasWrongValueResponse('id', 'Parameter should contain numeric ID of Unsplash collection.');
-  }
-
-  return await processRandomCollectionEntryLoading(context, unsplashAccessKey, id);
+  return await processRandomPhotoLoading(context, unsplashAccessKey, query);
 };
 
 const missingRequiredParameterResponse = (parameterName: string): Response => {
@@ -134,16 +130,16 @@ const internalServerErrorResponse = (): Response => {
   return apiProblemResponse(500, `Something went wrong.`, 'internal_server_error');
 };
 
-const processRandomCollectionEntryLoading = async (
+const processRandomPhotoLoading = async (
   context: ExecutionContext,
   unsplashAccessKey: string,
-  collectionId: string,
+  query: string,
 ): Promise<Response> => {
   let photo: UnsplashPhoto;
   let downloadNotificationUrl: string;
 
   try {
-    [downloadNotificationUrl, photo] = await getRandomPhotoFromCollection(unsplashAccessKey, collectionId);
+    [downloadNotificationUrl, photo] = await getRandomPhotoByQuery(unsplashAccessKey, query);
   } catch (error: unknown) {
     if (error instanceof UnsplashApiError) {
       switch (error.statusCode) {

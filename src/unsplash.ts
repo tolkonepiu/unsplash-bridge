@@ -91,14 +91,14 @@ export const notifyUnsplashAboutDownload = async (accessKey: string, downloadUrl
   Logger.info('unsplash', `Notified about downloading by URL "${downloadUrl}"`);
 };
 
-export const getRandomPhotoFromCollection = async (
+export const getRandomPhotoByQuery = async (
   accessKey: string,
-  collectionId: string,
+  query: string,
 ): Promise<[string, UnsplashPhoto]> => {
   const unsplash = getUnsplashClient(accessKey);
 
   const response = await unsplash.photos.getRandom({
-    collectionIds: [collectionId],
+    query: query,
   });
 
   if (response.type === 'error') {
