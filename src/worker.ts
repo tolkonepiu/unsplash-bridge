@@ -108,7 +108,7 @@ const randomPhotoAction = async (
     return missingRequiredParameterResponse('query');
   }
 
-  if (!(orientation in ['landscape', 'portrait', 'squarish'])) {
+  if (!(['landscape', 'portrait', 'squarish'].includes(orientation))) {
     return parameterHasWrongValueResponse('orientation');
   }
 
