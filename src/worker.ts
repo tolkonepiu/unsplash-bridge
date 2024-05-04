@@ -102,9 +102,14 @@ const randomPhotoAction = async (
   const requestUrl = new URL(request.url);
 
   const query = requestUrl.searchParams.get('query');
+  const orientation = requestUrl.searchParams.get('orientation') ?? 'landscape';
 
   if (query === null) {
     return missingRequiredParameterResponse('query');
+  }
+
+  if (!(orientation in ['landscape', 'portrait', 'squarish'])) {
+    return parameterHasWrongValueResponse('orientation');
   }
 
   return await processRandomPhotoLoading(context, unsplashAccessKey, query);
@@ -114,10 +119,10 @@ const missingRequiredParameterResponse = (parameterName: string): Response => {
   return apiProblemResponse(400, `Missing required query-parameter: ${parameterName}`, 'missing_required_parameter');
 };
 
-const parameterHasWrongValueResponse = (parameterName: string, problem: string): Response => {
+const parameterHasWrongValueResponse = (parameterName: string): Response => {
   return apiProblemResponse(
     400,
-    `Query-parameter "${parameterName}" has wrong value: ${problem}`,
+    `Query-parameter "${parameterName}" has wrong value`,
     'parameter_has_wrong_value',
   );
 };
@@ -153,14 +158,8 @@ const processRandomPhotoLoading = async (
 
   context.waitUntil(notifyUnsplashAboutDownload(unsplashAccessKey, downloadNotificationUrl));
 
-  const browserCacheTtl = 60 * 60 * 12; // 12h
+  // cache in browser
+  const statusCode = 301;
 
-  return new Response(JSON.stringify(photo), {
-    headers: {
-      'Access-Control-Allow-Methods': 'GET',
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': `public, max-age=${browserCacheTtl}, immutable`,
-      'Content-Type': 'application/json; charset=UTF-8',
-    },
-  });
+  return Response.redirect(photo.image.url, statusCode);
 };
