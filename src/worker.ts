@@ -113,7 +113,7 @@ const randomPhotoAction = async (
     return parameterHasWrongValueResponse('orientation');
   }
 
-  return await processRandomPhotoLoading(context, unsplashAccessKey, query, orientation as Orientation);
+  return await processRandomPhotoLoading(context, unsplashAccessKey, query, orientation as Orientation, request);
 };
 
 const missingRequiredParameterResponse = (parameterName: string): Response => {
@@ -137,6 +137,7 @@ const processRandomPhotoLoading = async (
   unsplashAccessKey: string,
   query: string,
   orientation: Orientation,
+  request: Request,
 ): Promise<Response> => {
   let photo: UnsplashPhoto;
   let downloadNotificationUrl: string;
@@ -156,8 +157,16 @@ const processRandomPhotoLoading = async (
 
   context.waitUntil(notifyUnsplashAboutDownload(unsplashAccessKey, downloadNotificationUrl));
 
-  // cache in browser
-  const statusCode = 301;
+  const imageRequest = new Request(photo.image.url, {
+    headers: request.headers,
+  });
 
-  return Response.redirect(photo.image.url, statusCode);
+  return fetch(imageRequest, {
+    cf: {
+      image: {
+        format: 'webp',
+        height: 500
+      },
+    },
+  });
 };
