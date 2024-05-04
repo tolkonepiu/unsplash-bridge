@@ -1,6 +1,7 @@
 import { createApi } from 'unsplash-js';
 
 import { Logger } from './logger';
+import { Orientation } from 'unsplash-js/dist/types/request';
 
 export class UnsplashApiError extends Error {
   constructor(
@@ -94,11 +95,13 @@ export const notifyUnsplashAboutDownload = async (accessKey: string, downloadUrl
 export const getRandomPhotoByQuery = async (
   accessKey: string,
   query: string,
+  orientation: Orientation
 ): Promise<[string, UnsplashPhoto]> => {
   const unsplash = getUnsplashClient(accessKey);
 
   const response = await unsplash.photos.getRandom({
     query: query,
+    orientation: orientation
   });
 
   if (response.type === 'error') {

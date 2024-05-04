@@ -3,6 +3,7 @@ import { Toucan } from 'toucan-js';
 import type { UnsplashPhoto } from './unsplash';
 
 import { Logger } from './logger';
+import { Orientation } from 'unsplash-js/dist/types/request';
 import { UnsplashApiError, getRandomPhotoByQuery, notifyUnsplashAboutDownload } from './unsplash';
 
 export type Env = {
@@ -108,11 +109,11 @@ const randomPhotoAction = async (
     return missingRequiredParameterResponse('query');
   }
 
-  if (!(['landscape', 'portrait', 'squarish'].includes(orientation))) {
+  if (!['landscape', 'portrait', 'squarish'].includes(orientation)) {
     return parameterHasWrongValueResponse('orientation');
   }
 
-  return await processRandomPhotoLoading(context, unsplashAccessKey, query);
+  return await processRandomPhotoLoading(context, unsplashAccessKey, query, orientation as Orientation);
 };
 
 const missingRequiredParameterResponse = (parameterName: string): Response => {
@@ -120,11 +121,7 @@ const missingRequiredParameterResponse = (parameterName: string): Response => {
 };
 
 const parameterHasWrongValueResponse = (parameterName: string): Response => {
-  return apiProblemResponse(
-    400,
-    `Query-parameter "${parameterName}" has wrong value`,
-    'parameter_has_wrong_value',
-  );
+  return apiProblemResponse(400, `Query-parameter "${parameterName}" has wrong value`, 'parameter_has_wrong_value');
 };
 
 const endpointNotFoundResponse = (): Response => {
@@ -139,12 +136,13 @@ const processRandomPhotoLoading = async (
   context: ExecutionContext,
   unsplashAccessKey: string,
   query: string,
+  orientation: Orientation,
 ): Promise<Response> => {
   let photo: UnsplashPhoto;
   let downloadNotificationUrl: string;
 
   try {
-    [downloadNotificationUrl, photo] = await getRandomPhotoByQuery(unsplashAccessKey, query);
+    [downloadNotificationUrl, photo] = await getRandomPhotoByQuery(unsplashAccessKey, query, orientation);
   } catch (error: unknown) {
     if (error instanceof UnsplashApiError) {
       switch (error.statusCode) {
